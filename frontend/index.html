@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Personality Test</title>
+
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<header class="nav">
+    <h2>Personality Test</h2>
+</header>
+
+<section class="hero">
+    <h1>Discover Your Personality Type</h1>
+    <p>Understand your behavior, strengths and career direction</p>
+</section>
+
+<div class="container">
+
+    <div id="questionCard" class="card">
+        <div id="progressText"></div>
+
+        <div class="progress-bar">
+            <div id="progressFill"></div>
+        </div>
+
+        <h2 id="questionBox"></h2>
+
+        <div class="buttons">
+            <button onclick="answer(-1)" class="btn red">Disagree</button>
+            <button onclick="answer(0)" class="btn gray">Neutral</button>
+            <button onclick="answer(1)" class="btn blue">Agree</button>
+        </div>
+    </div>
+
+    <div id="result" class="hidden">
+
+        <div class="result-card">
+            <h1 id="type"></h1>
+            <h3 id="title"></h3>
+
+            <div class="desc-box">
+                <p id="description"></p>
+            </div>
+
+            <p id="confidence"></p>
+        </div>
+
+        <div class="grid">
+
+            <div class="card">
+                <h3>Trait Percentages</h3>
+                <div id="percentages"></div>
+            </div>
+
+            <div class="card">
+                <h3>Personality Chart</h3>
+                <canvas id="chart"></canvas>
+            </div>
+
+            <div class="card">
+                <h3>Strengths</h3>
+                <ul id="strengths"></ul>
+
+                <h3>Recommended Careers</h3>
+                <ul id="careers"></ul>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
