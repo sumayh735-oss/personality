@@ -1,3 +1,5 @@
+const API_URL = "https://personality-1-57jo.onrender.com";
+
 let questions = [];
 let answers = [];
 let index = 0;
@@ -5,24 +7,37 @@ let chartInstance = null;
 
 document.addEventListener("DOMContentLoaded", init);
 
+/* =========================
+   INIT
+========================= */
 async function init() {
-    const res = await fetch("http://127.0.0.1:8000/questions");
-    const data = await res.json();
+    try {
+        const res = await fetch(`${API_URL}/questions`);
+        const data = await res.json();
 
-    questions = data.questions;
-    showQuestion();
+        questions = data.questions || [];
+        showQuestion();
+    } catch (error) {
+        console.error("Failed to load questions:", error);
+    }
 }
 
+/* =========================
+   SHOW QUESTION
+========================= */
 function showQuestion() {
     document.getElementById("questionBox").innerText = questions[index];
 
     document.getElementById("progressText").innerText =
         `Question ${index + 1} / ${questions.length}`;
 
-    document.getElementById("progressFill").style.width =
-        ((index + 1) / questions.length) * 100 + "%";
+    const percent = ((index + 1) / questions.length) * 100;
+    document.getElementById("progressFill").style.width = percent + "%";
 }
 
+/* =========================
+   ANSWER
+========================= */
 function answer(val) {
     answers.push(val);
     index++;
@@ -34,38 +49,76 @@ function answer(val) {
     }
 }
 
+/* =========================
+   SUBMIT TO BACKEND
+========================= */
 async function submit() {
     document.getElementById("questionCard").style.display = "none";
 
-    const res = await fetch("http://127.0.0.1:8000/predict", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ answers })
-    });
+    try {
+        const res = await fetch(`${API_URL}/predict`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ answers })
+        });
 
-    const data = await res.json();
+        const data = await res.json();
 
-    document.getElementById("result").classList.remove("hidden");
+        document.getElementById("result").classList.remove("hidden");
 
-    document.getElementById("type").innerText = data.type;
+        // =========================
+        // TYPE
+        // =========================
+        document.getElementById("type").innerText = data.type;
 
-    document.getElementById("title").innerText =
-        `You are: ${data.percentages["E/I"].side} • ${data.percentages["S/N"].side} • ${data.percentages["T/F"].side} • ${data.percentages["J/P"].side}`;
+        // =========================
+        // PERSONALITY BREAKDOWN TEXT
+        // =========================
+        const p = data.percentages;
 
-    document.getElementById("description").innerText = data.description;
+        document.getElementById("title").innerText =
+            `You are: ${p["E/I"].side} • ${p["S/N"].side} • ${p["T/F"].side} • ${p["J/P"].side}`;
 
-    document.getElementById("confidence").innerText =
-        `Confidence: ${data.confidence}%`;
+        // =========================
+        // DESCRIPTION (AI STYLE)
+        // =========================
+        document.getElementById("description").innerText =
+            data.description || "Your personality analysis is ready.";
 
-    showPercentages(data.percentages);
-    fillList("strengths", data.strengths);
-    fillList("careers", data.careers);
+        // =========================
+        // CONFIDENCE
+        // =========================
+        document.getElementById("confidence").innerText =
+            `Confidence: ${data.confidence}%`;
 
-    drawChart(data.traits);
+        // =========================
+        // PERCENTAGE BARS
+        // =========================
+        showPercentages(data.percentages);
+
+        // =========================
+        // LISTS
+        // =========================
+        fillList("strengths", data.strengths);
+        fillList("careers", data.careers);
+
+        // =========================
+        // CHART
+        // =========================
+        drawChart(data.traits);
+
+    } catch (error) {
+        console.error("Prediction failed:", error);
+    }
 }
 
+/* =========================
+   PERCENTAGE UI
+========================= */
 function showPercentages(p) {
     const el = document.getElementById("percentages");
+    if (!el) return;
+
     el.innerHTML = "";
 
     for (let key in p) {
@@ -82,55 +135,92 @@ function showPercentages(p) {
     }
 }
 
+/* =========================
+   LIST RENDER
+========================= */
 function fillList(id, arr) {
     const el = document.getElementById(id);
+    if (!el) return;
+
     el.innerHTML = "";
 
+    if (!arr || arr.length === 0) {
+        el.innerHTML = "<li>No data available</li>";
+        return;
+    }
+
     arr.forEach(item => {
-        el.innerHTML += `<li>${item}</li>`;
+        el.innerHTML += `<li>✔ ${item}</li>`;
     });
 }
 
+/* =========================
+   RADAR CHART (PROFESSIONAL)
+========================= */
 function drawChart(traits) {
     const ctx = document.getElementById("chart");
+
+    if (!ctx) return;
 
     if (chartInstance) {
         chartInstance.destroy();
     }
 
+    const labels = Object.keys(traits);
+    const values = Object.values(traits);
+
     chartInstance = new Chart(ctx, {
         type: "radar",
         data: {
-            labels: Object.keys(traits),
+            labels: labels,
             datasets: [{
-                label: "Trait Strength",
-                data: Object.values(traits),
+                label: "Personality Strength",
+                data: values,
                 borderColor: "#3b82f6",
-                backgroundColor: "rgba(59,130,246,.18)",
                 borderWidth: 2,
-                pointRadius: 5
+                backgroundColor: "rgba(59,130,246,0.15)",
+                pointBackgroundColor: "#3b82f6",
+                pointRadius: 5,
+                pointHoverRadius: 7
             }]
         },
         options: {
             responsive: true,
             animation: {
-                duration: 1400
+                duration: 1600,
+                easing: "easeOutQuart"
             },
             plugins: {
                 tooltip: {
                     callbacks: {
                         label: function(context) {
-                            return `${context.raw}%`;
+                            return `${context.label}: ${context.raw}%`;
                         }
                     }
+                },
+                legend: {
+                    display: false
                 }
             },
             scales: {
                 r: {
-                    min: 50,
+                    min: 0,
                     max: 100,
                     ticks: {
                         display: false
+                    },
+                    grid: {
+                        color: "#e5e7eb"
+                    },
+                    angleLines: {
+                        color: "#e5e7eb"
+                    },
+                    pointLabels: {
+                        font: {
+                            size: 13,
+                            weight: "bold"
+                        },
+                        color: "#1f2937"
                     }
                 }
             }
