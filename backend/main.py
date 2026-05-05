@@ -10,12 +10,12 @@ app = FastAPI(title="Real MBTI Engine")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://your-netlify-site.netlify.app",
+        "https://zingy-tiramisu-41c6cc.netlify.app",
         "http://localhost:5500"
     ],
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"],
+    allow_headers=["*"]
 )
 
 # =========================
